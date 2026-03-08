@@ -29,6 +29,11 @@ public class HarvestingDraw {
         paintText.setFakeBoldText(true);
     }
 
+    // This is the method that was missing and caused the build failure
+    public void setTextSize(int size) {
+        paintText.setTextSize(size);
+    }
+
     public void draw(Canvas canvas, float lpX, float lpY, Matrix transformationMatrix, BitmapCache bitmapCache) {
         ArrayList<Harvestable> harvestables = MainHandler.getInstance().harvestablesHandler.getHarvestableList();
         
@@ -44,10 +49,8 @@ public class HarvestingDraw {
             float drawX = tempPos[0];
             float drawY = tempPos[1];
 
-            // 1. Scaled Tier Size (T8 is bigger)
             float radius = 8f + (h.getTier() * 1.5f);
 
-            // 2. Enchantment Rings
             if (h.getEnchant() > 0) {
                 int ringColor = Color.TRANSPARENT;
                 if (h.getEnchant() == 1) ringColor = Color.parseColor("#3FB950");
@@ -58,16 +61,13 @@ public class HarvestingDraw {
                 canvas.drawCircle(drawX, drawY, radius + 6f, paintRing);
             }
 
-            // 3. Draw Blue Resource Dot
             paintCore.setColor(Color.parseColor("#58a6ff"));
             canvas.drawCircle(drawX, drawY, radius, paintCore);
 
-            // 4. Draw Pill Label (T6 Fiber.2)
             String typeName = "Res";
             try { typeName = HarvestableType.values()[h.getType()].name(); } catch (Exception e) {}
             String label = "T" + h.getTier() + " " + typeName + (h.getEnchant() > 0 ? "." + h.getEnchant() : "");
             
-            paintText.setTextSize(22f);
             float textWidth = paintText.measureText(label);
             canvas.drawRoundRect(new RectF(drawX - textWidth/2 - 8, drawY + 20, drawX + textWidth/2 + 8, drawY + 50), 10f, 10f, paintPill);
             canvas.drawText(label, drawX, drawY + 42, paintText);
