@@ -1,156 +1,76 @@
 package com.minhui.networkcapture.RadarView;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
+import android.graphics.RectF;
 import android.view.View;
-
-import androidx.core.content.ContextCompat;
-
-import com.minhui.networkcapture.R;
-import com.minhui.vpn.Handlers.HandlerItem.FishingZone;
 import com.minhui.vpn.Handlers.HandlerItem.Harvestable;
 import com.minhui.vpn.Handlers.HandlerItem.HarvestableType;
 import com.minhui.vpn.Handlers.MainHandler;
-
 import java.util.ArrayList;
 
-public class HarvestingDraw
-{
+public class HarvestingDraw {
     View view;
     float[] tempPos = new float[2];
-    Paint paintHarvestingSize;
-    public void init(View view)
-    {
+    Paint paintCore = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint paintRing = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint paintPill = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint paintText = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    public void init(View view) {
         this.view = view;
-
-        tempPos[0]=0;
-        tempPos[1]=0;
-
-        paintHarvestingSize = new Paint();
-        paintHarvestingSize.setColor(view.getContext().getColor(R.color.colorHarvestingSize));
-        paintHarvestingSize.setStyle(Paint.Style.FILL);
-        paintHarvestingSize.setTextAlign(Paint.Align.CENTER);
-        paintHarvestingSize.setTextSize(RadarSettings.getInstance().harvestingIconTextSizeBar);
+        paintRing.setStyle(Paint.Style.STROKE);
+        paintRing.setStrokeWidth(5f);
+        paintPill.setColor(Color.parseColor("#CC0D1117"));
+        paintText.setColor(Color.WHITE);
+        paintText.setTextAlign(Paint.Align.CENTER);
+        paintText.setFakeBoldText(true);
     }
 
-    public void setTextSize(int size)
-    {
-        paintHarvestingSize.setTextSize(size);
-    }
-
-    public void draw(Canvas canvas, float lpX , float lpY , Matrix transformationMatrix , BitmapCache bitmapCache)
-    {
+    public void draw(Canvas canvas, float lpX, float lpY, Matrix transformationMatrix, BitmapCache bitmapCache) {
         ArrayList<Harvestable> harvestables = MainHandler.getInstance().harvestablesHandler.getHarvestableList();
+        
+        for (Harvestable h : harvestables) {
+            if (h.getCharges() <= 0) continue;
+            if (!RadarSettings.getInstance().harvestingTiers[h.getTier() - 1]) continue;
+            if (!RadarSettings.getInstance().harvestingEnchants[h.getEnchant()]) continue;
 
-        int desiredWidth = RadarSettings.getInstance().harvestingWidthHeightBar;
-        int desiredHeight = RadarSettings.getInstance().harvestingWidthHeightBar;
-        int healthOffset = RadarSettings.getInstance().harvestingIconTextGapBar;
-
-        for (Harvestable h: harvestables)
-        {
-            if(h.getCharges() <= 0)
-            {
-                continue;
-            }
-
-            if(!RadarSettings.getInstance().harvestingTiers[h.getTier() -1])
-            {
-                continue;
-            }
-
-            if(!RadarSettings.getInstance().harvestingEnchants[h.getEnchant()])
-            {
-                continue;
-            }
-
-            int typeIndex = h.getType();
-
-            if (typeIndex >= 0 && typeIndex < HarvestableType.values().length)
-            {
-                if(!RadarSettings.getInstance().isInHarvestable(HarvestableType.values()[typeIndex]))
-                {
-                    continue;
-                }
-            }
-            else
-            {
-                continue;
-            }
-
-            float enemyX =  h.getPosX() * -1 + lpX;
-            float enemyY =  h.getPosY() - lpY;
-
-            tempPos[0] = enemyX;
-            tempPos[1] = enemyY;
-
+            tempPos[0] = h.getPosX() * -1 + lpX;
+            tempPos[1] = h.getPosY() - lpY;
             transformationMatrix.mapPoints(tempPos);
-            String name = "";
 
-            try
-            {
-                 name = HarvestableType.values()[typeIndex].name().toLowerCase();
-            }
-            catch (Exception ignored)
-            {
+            float drawX = tempPos[0];
+            float drawY = tempPos[1];
 
-            };
+            // 1. Scaled Tier Size (T8 is bigger)
+            float radius = 8f + (h.getTier() * 1.5f);
 
-            if(name.length()==0)
-            {
-                continue;
-            }
-
-            String totalName = "";
-
-            if (name.contains("fiber"))
-            {
-                totalName = "fiber_"+ h.getTier() + "_" + h.getEnchant();
-            }
-            else if(name.contains("ore"))
-            {
-                totalName = "ore_"+ h.getTier() + "_" + h.getEnchant();
-            }
-            else if(name.contains("wood"))
-            {
-                totalName = "logs_"+ h.getTier() + "_" + h.getEnchant();
-            }
-            else if(name.contains("hide"))
-            {
-                totalName = "hide_"+ h.getTier() + "_" + h.getEnchant();
-            }
-            else
-            {
-                totalName = "rock_"+ h.getTier() + "_" + h.getEnchant();
+            // 2. Enchantment Rings
+            if (h.getEnchant() > 0) {
+                int ringColor = Color.TRANSPARENT;
+                if (h.getEnchant() == 1) ringColor = Color.parseColor("#3FB950");
+                else if (h.getEnchant() == 2) ringColor = Color.parseColor("#1F6FEB");
+                else if (h.getEnchant() == 3) ringColor = Color.parseColor("#BB8AFF");
+                else if (h.getEnchant() == 4) ringColor = Color.parseColor("#E3B341");
+                paintRing.setColor(ringColor);
+                canvas.drawCircle(drawX, drawY, radius + 6f, paintRing);
             }
 
-            Bitmap bitmap = bitmapCache.getBitmapFromMemCache(totalName);
+            // 3. Draw Blue Resource Dot
+            paintCore.setColor(Color.parseColor("#58a6ff"));
+            canvas.drawCircle(drawX, drawY, radius, paintCore);
 
-            if(bitmap == null)
-            {
-                Log.d("Harvesting nameBitmap", ""+totalName);
-
-                int resourceId = view.getResources().getIdentifier(totalName, "drawable", view.getContext().getPackageName());
-
-                Drawable drawable = ContextCompat.getDrawable(view.getContext(), resourceId);
-                BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-                bitmap = bitmapDrawable.getBitmap();
-                bitmapCache.addBitmapToMemoryCache(totalName,bitmap);
-            }
-
-            int offsetX = (int) (tempPos[0] - (desiredWidth / 2));
-            int offsetY = (int) (tempPos[1] - (desiredHeight / 2));
-            bitmap= Bitmap.createScaledBitmap(bitmap, desiredWidth, desiredHeight, false);
-            canvas.drawBitmap(bitmap , offsetX , offsetY,null);
-
-            if(RadarSettings.getInstance().harvestingSize)
-            {
-                canvas.drawText(String.valueOf(h.getCharges()), tempPos[0], tempPos[1]+healthOffset, paintHarvestingSize);
-            }
+            // 4. Draw Pill Label (T6 Fiber.2)
+            String typeName = "Res";
+            try { typeName = HarvestableType.values()[h.getType()].name(); } catch (Exception e) {}
+            String label = "T" + h.getTier() + " " + typeName + (h.getEnchant() > 0 ? "." + h.getEnchant() : "");
+            
+            paintText.setTextSize(22f);
+            float textWidth = paintText.measureText(label);
+            canvas.drawRoundRect(new RectF(drawX - textWidth/2 - 8, drawY + 20, drawX + textWidth/2 + 8, drawY + 50), 10f, 10f, paintPill);
+            canvas.drawText(label, drawX, drawY + 42, paintText);
         }
     }
 }
