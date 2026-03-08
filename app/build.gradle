@@ -1,49 +1,39 @@
 apply plugin: 'com.android.application'
 
-android
-{
-    signingConfigs
-    {
-        release
-        {
-            storeFile file('C:\\Users\\jdeleon\\StudioProjects\\QRadar-Albion-Online-Android\\key\\key.jks')
-            storePassword 'Usuario@2024#'
-            keyPassword 'Usuario@2024#'
-            keyAlias '33'
-        }
-    }
+android {
     compileSdkVersion 33
-    defaultConfig
-    {
+    
+    defaultConfig {
         applicationId 'com.minhui.networkcapture.albion'
         minSdkVersion 24
         targetSdkVersion 33
         versionCode 15
         versionName '1.1.7.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        Properties properties = new Properties();
-        properties.load(project.rootProject.file("local.properties").newDataInputStream())
-        buildConfigField "String", "API_KEY" ,"\"${properties.getProperty("API_KEY")}\""
-        signingConfig signingConfigs.release
+        
+        // Removed local.properties dependency to fix GitHub build error
+        buildConfigField "String", "API_KEY", "\"FIXED_BY_G_BUILD\""
     }
-    buildTypes
-    {
-        release
-        {
-            minifyEnabled true
+
+    buildTypes {
+        release {
+            minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
     }
-    compileOptions
-    {
-        targetCompatibility 11
-        sourceCompatibility 11
+
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_11
     }
 }
 
-dependencies
-{
+dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -57,7 +47,6 @@ dependencies
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation("org.greenrobot:eventbus:3.3.1")
     implementation project(':vpnadaptercore')
-    implementation 'com.google.android.material:material:1.7.0-alpha04'
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.squareup.okhttp:okhttp:2.7.4'
 }
