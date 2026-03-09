@@ -1,12 +1,9 @@
 package com.minhui.vpn.service;
 
-import static com.minhui.vpn.VPNConstants.VPN_SP_NAME;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -42,15 +39,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
         mVPNThread.start();
     }
 
-    // FIX: Added missing method required by vpnadaptercore
-    public boolean vpnRunningStatus() {
-        return IsRunning;
-    }
-
-    // FIX: Added missing method required by vpnadaptercore
-    public void setVpnRunningStatus(boolean isRunning) {
-        this.IsRunning = isRunning;
-    }
+    public boolean vpnRunningStatus() { return IsRunning; }
+    public void setVpnRunningStatus(boolean isRunning) { this.IsRunning = isRunning; }
 
     private void setupNotification() {
         String channelId = "vpn_channel";
@@ -73,12 +63,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
         builder.addAddress("10.0.0.2", 24);
         builder.addRoute("0.0.0.0", 0);
         builder.allowBypass(); 
-        
         try {
             builder.addAllowedApplication(selectPackage);
             builder.addAllowedApplication(getPackageName());
         } catch (Exception e) { e.printStackTrace(); }
-
         builder.setSession("AlbionRadar");
         return builder.establish();
     }
@@ -89,7 +77,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
             udpQueue = new ConcurrentLinkedQueue<>();
             udpServer = new UDPServer(this, udpQueue);
             udpServer.start();
-            
             while (IsRunning) {
                 if (mVPNInterface == null) {
                     mVPNInterface = establishVPN();
