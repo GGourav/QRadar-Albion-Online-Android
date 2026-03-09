@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     private ConcurrentLinkedQueue<Packet> udpQueue;
     private FileInputStream in;
     private UDPServer udpServer;
-    private final String selectPackage = "com.albiononline"; // Your corrected package
+    private final String selectPackage = "com.albiononline"; 
     public static final int MUTE_SIZE = 1500;
 
     @Override
@@ -40,6 +40,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
         IsRunning = true;
         mVPNThread = new Thread(this, "VPNServiceThread");
         mVPNThread.start();
+    }
+
+    // FIX: Added missing method required by vpnadaptercore
+    public boolean vpnRunningStatus() {
+        return IsRunning;
+    }
+
+    // FIX: Added missing method required by vpnadaptercore
+    public void setVpnRunningStatus(boolean isRunning) {
+        this.IsRunning = isRunning;
     }
 
     private void setupNotification() {
@@ -62,7 +72,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
         builder.setMtu(MUTE_SIZE);
         builder.addAddress("10.0.0.2", 24);
         builder.addRoute("0.0.0.0", 0);
-        builder.allowBypass(); // FIX: Keeps your game connected
+        builder.allowBypass(); 
         
         try {
             builder.addAllowedApplication(selectPackage);
@@ -86,10 +96,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
                     in = new FileInputStream(mVPNInterface.getFileDescriptor());
                     mVPNOutputStream = new FileOutputStream(mVPNInterface.getFileDescriptor());
                 }
-
                 mPacket = new byte[MUTE_SIZE];
                 int size = in.read(mPacket);
-                // The rest of the packet processing is handled by the vpnadaptercore
                 Thread.sleep(10);
             }
         } catch (Exception e) { e.printStackTrace(); }
