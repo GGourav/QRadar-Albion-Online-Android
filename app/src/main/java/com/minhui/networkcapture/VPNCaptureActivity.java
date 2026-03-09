@@ -2,6 +2,7 @@ package com.minhui.networkcapture;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build; // FIX: Added missing import
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.ImageView;
@@ -20,6 +21,8 @@ public class VPNCaptureActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vpn_capture);
+        
+        // Initialize the Albion Database
         MainHandler.getInstance().initDatabase(this);
 
         vpnButton = findViewById(R.id.vpn);
@@ -34,14 +37,19 @@ public class VPNCaptureActivity extends FragmentActivity {
         });
 
         if (!Settings.canDrawOverlays(this)) {
-            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())));
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
         }
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.container_vp, new MainFragment()).commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container_vp, new MainFragment())
+                .commit();
     }
 
     private void startRadarWindowService() {
         Intent intent = new Intent(this, RadarDrawView.class);
+        // FIX: Start service correctly based on Android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             ContextCompat.startForegroundService(this, intent);
         } else {
