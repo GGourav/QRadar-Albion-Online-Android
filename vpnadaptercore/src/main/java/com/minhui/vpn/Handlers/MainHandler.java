@@ -1,41 +1,28 @@
 package com.minhui.vpn.Handlers;
 
-import com.minhui.vpn.Handlers.HandlerItem.FishingZone;
+import android.content.Context;
+import com.minhui.vpn.Handlers.HandlerItem.Mob;
 
-public class MainHandler
-{
-
+public class MainHandler {
     private static MainHandler instance;
-    private MainHandler()
-    {
+    public MobsHandler mobsHandler;
+    public HarvestablesHandler harvestablesHandler;
+    // ... other handlers ...
+
+    private MainHandler() {
+        mobsHandler = new MobsHandler();
+        harvestablesHandler = new HarvestablesHandler();
     }
 
-    public  PlayersHandler playersHandler = new PlayersHandler();
-    public  MobsHandler mobsHandler = new MobsHandler();
-    public  HarvestablesHandler harvestablesHandler = new HarvestablesHandler();
-    public  ChestHandler chestHandler = new ChestHandler();
-    public FishingZoneHandler fishingZoneHandler = new FishingZoneHandler();
-    public static MainHandler getInstance()
-    {
-        if (instance == null)
-        {
-            synchronized (MainHandler.class)
-            {
-                if (instance == null)
-                {
-                    instance = new MainHandler();
-                }
-            }
-        }
+    public static MainHandler getInstance() {
+        if (instance == null) instance = new MainHandler();
         return instance;
     }
 
-    public void clearAll() {
-
-        playersHandler.clear();
-        mobsHandler.clear();
-        harvestablesHandler.clear();
-        chestHandler.clear();
-        fishingZoneHandler.clear();
+    // ADD THIS METHOD to load the data from your assets
+    public void initDatabase(Context context) {
+        if (mobsHandler != null) {
+            mobsHandler.loadDatabase(context);
+        }
     }
 }
