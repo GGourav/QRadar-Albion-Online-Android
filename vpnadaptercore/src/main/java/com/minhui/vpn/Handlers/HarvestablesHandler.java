@@ -10,11 +10,28 @@ public class HarvestablesHandler {
     public void addHarvestable(int id, int type, int tier, float posX, float posY, int charges, int enchant) {
         SharedLocks.harvestablesHandlerLock.writeLock().lock();
         try {
-            // Check if already exists
-            for (Harvestable existing : harvestableList) {
-                if (existing.getId() == id) return;
-            }
+            for (Harvestable existing : harvestableList) { if (existing.getId() == id) return; }
             harvestableList.add(new Harvestable(id, type, tier, posX, posY, charges, enchant));
+        } finally {
+            SharedLocks.harvestablesHandlerLock.writeLock().unlock();
+        }
+    }
+
+    // RESTORED: Required by vpnadaptercore
+    public void removeHarvestable(int id) {
+        SharedLocks.harvestablesHandlerLock.writeLock().lock();
+        try {
+            harvestableList.removeIf(x -> x.getId() == id);
+        } finally {
+            SharedLocks.harvestablesHandlerLock.writeLock().unlock();
+        }
+    }
+
+    // RESTORED: Required by vpnadaptercore
+    public void removeNotInRange(float lpX, float lpY) {
+        SharedLocks.harvestablesHandlerLock.writeLock().lock();
+        try {
+            harvestableList.removeIf(x -> Utils.calculateDistance(lpX, lpY, x.getPosX(), x.getPosY()) > Utils.MaxDistance);
         } finally {
             SharedLocks.harvestablesHandlerLock.writeLock().unlock();
         }
@@ -36,7 +53,8 @@ public class HarvestablesHandler {
     }
 
     public ArrayList<Harvestable> getHarvestableList() {
-        return new ArrayList<>(harvestableList);
+        SharedLocks.harvestablesHandlerLock.readLock().lock();
+        try { return new ArrayList<>(harvestableList); } finally { SharedLocks.harvestablesHandlerLock.readLock().unlock(); }
     }
 
     public void clear() { harvestableList.clear(); }
