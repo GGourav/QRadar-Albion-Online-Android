@@ -10,11 +10,14 @@ import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import androidx.annotation.Keep;
 import androidx.core.app.NotificationCompat;
+import com.minhui.vpn.Packet;
+import com.minhui.vpn.UDPServer;
 import com.minhui.vpn.tcpip.IPHeader;
 import com.minhui.vpn.utils.VpnServiceHelper;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Keep public class FirewallVpnService extends VpnService implements Runnable {
     private boolean IsRunning = false;
@@ -23,7 +26,9 @@ import java.io.IOException;
     private FileOutputStream mVPNOutputStream;
     private byte[] mPacket;
     private IPHeader mIPHeader;
+    private ConcurrentLinkedQueue<Packet> udpQueue;
     private FileInputStream in;
+    private UDPServer udpServer;
     private final String selectPackage = "com.albiononline"; 
     public static final int MUTE_SIZE = 2048;
 
@@ -56,7 +61,7 @@ import java.io.IOException;
                 .build();
         
         if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
             startForeground(1, notification);
         }
@@ -79,6 +84,9 @@ import java.io.IOException;
     @Override
     public void run() {
         try {
+            udpQueue = new ConcurrentLinkedQueue<>();
+            udpServer = new UDPServer(this, udpQueue);
+            udpServer.start();
             while (IsRunning) {
                 if (mVPNInterface == null) {
                     mVPNInterface = establishVPN();
