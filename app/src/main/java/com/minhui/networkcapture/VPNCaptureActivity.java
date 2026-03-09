@@ -24,7 +24,7 @@ import com.minhui.networkcapture.RadarView.RadarSettings;
 import com.minhui.vpn.ProxyConfig;
 import com.minhui.vpn.utils.DebugLog;
 import com.minhui.vpn.utils.VpnServiceHelper;
-import com.minhui.vpn.Handlers.MainHandler; // Added import
+import com.minhui.vpn.Handlers.MainHandler;
 
 @Keep
 public class VPNCaptureActivity extends FragmentActivity
@@ -85,13 +85,11 @@ public class VPNCaptureActivity extends FragmentActivity
 
         mContext = this;
 
-        // --- NEW: INITIALIZE THE ALBION DATABASE FROM ASSETS ---
         try {
             MainHandler.getInstance().initDatabase(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // -------------------------------------------------------
 
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.toolbar));
         vpnButton = (ImageView) findViewById(R.id.vpn);
@@ -138,7 +136,8 @@ public class VPNCaptureActivity extends FragmentActivity
         startService(windowService);
     }
 
-    private fun requestStoragePermission()
+    // FIX: Changed 'fun' to 'void' (Java syntax)
+    private void requestStoragePermission()
     {
         ActivityCompat.requestPermissions(this, needPermissions, REQUEST_STORAGE_PERMISSION);
     }
@@ -154,7 +153,7 @@ public class VPNCaptureActivity extends FragmentActivity
     @Override
     protected void onDestroy()
     {
-        super.onDestroy();
+        super.onDestroy() ;
         ProxyConfig.Instance.unregisterVpnStatusListener(vpnStatusListener);
     }
 
