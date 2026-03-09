@@ -1,17 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace 'com.minhui.networkcapture.albion' // FIX: Added namespace
-    compileSdkVersion 33
+    namespace 'com.minhui.networkcapture.albion'
+    compileSdkVersion 34 // Updated to 34
     
     defaultConfig {
         applicationId 'com.minhui.networkcapture.albion'
         minSdkVersion 24
-        targetSdkVersion 33
+        targetSdkVersion 34 // Updated to 34
         versionCode 15
         versionName '1.1.7.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        
         buildConfigField "String", "API_KEY", "\"FIXED_BY_G_BUILD\""
     }
 
@@ -47,7 +46,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation("org.greenrobot:eventbus:3.3.1")
     implementation project(':vpnadaptercore')
-    implementation 'com.google.android.material:material:1.7.0-alpha04'
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.squareup.okhttp:okhttp:2.7.4'
 }
