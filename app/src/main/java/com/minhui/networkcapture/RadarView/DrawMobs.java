@@ -19,13 +19,20 @@ public class DrawMobs {
     Paint pPill = new Paint(Paint.ANTI_ALIAS_FLAG);
     Paint pText = new Paint(Paint.ANTI_ALIAS_FLAG);
     float[] tempPos = new float[2];
+    View view; // Store the view to access context safely
 
     public void init(View view) {
+        this.view = view;
         pPill.setColor(Color.parseColor("#CC0D1117"));
         pText.setColor(Color.WHITE);
         pText.setTextAlign(Paint.Align.CENTER);
         pText.setFakeBoldText(true);
         pText.setTextSize(22f);
+    }
+
+    // FIX: Added back the method that SettingsFragment requires
+    public void setTextSize(int size) {
+        pText.setTextSize(size);
     }
 
     public void draw(Canvas canvas, float lpX, float lpY, Matrix transformationMatrix, BitmapCache bitmapCache) {
@@ -40,13 +47,14 @@ public class DrawMobs {
             Bitmap bitmap = null;
             String name = m.getName();
             
-            if (name != null) {
+            if (name != null && view != null) {
                 bitmap = bitmapCache.getBitmapFromMemCache(name);
                 if (bitmap == null) {
                     try {
-                        int resId = canvas.getContext().getResources().getIdentifier(name, "drawable", canvas.getContext().getPackageName());
+                        // FIX: Use view.getContext() instead of canvas.getContext()
+                        int resId = view.getResources().getIdentifier(name, "drawable", view.getContext().getPackageName());
                         if (resId != 0) {
-                            Drawable d = ContextCompat.getDrawable(canvas.getContext(), resId);
+                            Drawable d = ContextCompat.getDrawable(view.getContext(), resId);
                             if (d instanceof BitmapDrawable) {
                                 bitmap = ((BitmapDrawable) d).getBitmap();
                                 bitmapCache.addBitmapToMemoryCache(name, bitmap);
