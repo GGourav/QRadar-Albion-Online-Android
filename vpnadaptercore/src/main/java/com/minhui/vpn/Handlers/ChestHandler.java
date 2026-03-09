@@ -3,7 +3,7 @@ package com.minhui.vpn.Handlers;
 import java.util.ArrayList;
 
 public class ChestHandler {
-    public class Chest {
+    public static class Chest {
         public int id;
         public float posX;
         public float posY;
@@ -16,6 +16,10 @@ public class ChestHandler {
     private ArrayList<Chest> chestList = new ArrayList<>();
 
     public void addChest(int id, float x, float y, String name) {
+        // Prevent duplicates
+        for (Chest c : chestList) {
+            if (c.id == id) return;
+        }
         chestList.add(new Chest(id, x, y, name));
     }
 
@@ -23,7 +27,8 @@ public class ChestHandler {
         chestList.removeIf(c -> c.id == id);
     }
 
-    public ArrayList<Chest> getChestList() {
+    // FIX: Method name must be getChests() to satisfy DrawChests.java
+    public ArrayList<Chest> getChests() {
         return new ArrayList<>(chestList);
     }
 
