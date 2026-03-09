@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
@@ -16,7 +17,6 @@ import com.minhui.vpn.utils.VpnServiceHelper;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Keep public class FirewallVpnService extends VpnService implements Runnable {
@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     private void setupNotification() {
         String channelId = "vpn_channel";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(channelId, "Radar VPN", NotificationManager.IMPORTANCE_LOW);
+            NotificationChannel channel = new NotificationChannel(channelId, "Radar Service", NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) manager.createNotificationChannel(channel);
         }
@@ -59,7 +59,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .setOngoing(true)
                 .build();
-        startForeground(1, notification);
+        
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        } else {
+            startForeground(1, notification);
+        }
     }
 
     private ParcelFileDescriptor establishVPN() throws Exception {
@@ -89,16 +94,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
                     mVPNOutputStream = new FileOutputStream(mVPNInterface.getFileDescriptor());
                 }
                 int size = in.read(mPacket);
-                if (size > 0 && IsRunning) {
-                    onIPPacketReceived(mIPHeader, size);
-                }
+                if (size > 0 && IsRunning) { onIPPacketReceived(mIPHeader, size); }
                 Thread.sleep(10);
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
-
     void onIPPacketReceived(IPHeader ipHeader, int size) throws IOException { }
-
     @Override
     public void onDestroy() {
         IsRunning = false;
