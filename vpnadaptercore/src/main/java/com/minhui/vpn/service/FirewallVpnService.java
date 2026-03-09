@@ -10,14 +10,11 @@ import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import androidx.annotation.Keep;
 import androidx.core.app.NotificationCompat;
-import com.minhui.vpn.Packet;
-import com.minhui.vpn.UDPServer;
 import com.minhui.vpn.tcpip.IPHeader;
 import com.minhui.vpn.utils.VpnServiceHelper;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Keep public class FirewallVpnService extends VpnService implements Runnable {
     private boolean IsRunning = false;
@@ -26,9 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     private FileOutputStream mVPNOutputStream;
     private byte[] mPacket;
     private IPHeader mIPHeader;
-    private ConcurrentLinkedQueue<Packet> udpQueue;
     private FileInputStream in;
-    private UDPServer udpServer;
     private final String selectPackage = "com.albiononline"; 
     public static final int MUTE_SIZE = 2048;
 
@@ -49,9 +44,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
     private void setupNotification() {
         String channelId = "vpn_channel";
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(channelId, "Radar Service", NotificationManager.IMPORTANCE_LOW);
-            NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) manager.createNotificationChannel(channel);
         }
         Notification notification = new NotificationCompat.Builder(this, channelId)
@@ -84,9 +79,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     @Override
     public void run() {
         try {
-            udpQueue = new ConcurrentLinkedQueue<>();
-            udpServer = new UDPServer(this, udpQueue);
-            udpServer.start();
             while (IsRunning) {
                 if (mVPNInterface == null) {
                     mVPNInterface = establishVPN();
