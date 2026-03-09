@@ -50,12 +50,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     private void setupNotification() {
         String channelId = "vpn_channel";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(channelId, "Radar Service", NotificationManager.IMPORTANCE_LOW);
+            NotificationChannel channel = new NotificationChannel(channelId, "Radar VPN", NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) manager.createNotificationChannel(channel);
         }
         Notification notification = new NotificationCompat.Builder(this, channelId)
-                .setContentTitle("Albion Radar Active")
+                .setContentTitle("QRadar VPN Active")
                 .setSmallIcon(android.R.drawable.ic_menu_compass)
                 .setOngoing(true)
                 .build();
@@ -97,10 +97,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // Logic restored to bridge vpnadaptercore
-    void onIPPacketReceived(IPHeader ipHeader, int size) throws IOException {
-        // Packet processing is handled by native/adapter core
-    }
+    void onIPPacketReceived(IPHeader ipHeader, int size) throws IOException { }
 
     @Override
     public void onDestroy() {
