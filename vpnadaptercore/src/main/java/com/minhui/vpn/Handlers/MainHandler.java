@@ -4,8 +4,6 @@ import android.content.Context;
 
 public class MainHandler {
     private static MainHandler instance;
-    
-    // These must exist for the app to compile
     public MobsHandler mobsHandler;
     public HarvestablesHandler harvestablesHandler;
     public PlayersHandler playersHandler;
@@ -21,20 +19,14 @@ public class MainHandler {
     }
 
     public static MainHandler getInstance() {
-        if (instance == null) {
-            instance = new MainHandler();
-        }
+        if (instance == null) instance = new MainHandler();
         return instance;
     }
 
-    // This is our new method to load the JSON data
     public void initDatabase(Context context) {
-        if (mobsHandler != null) {
-            mobsHandler.loadDatabase(context);
-        }
+        if (mobsHandler != null) mobsHandler.loadDatabase(context);
     }
 
-    // This is required by the PhotonPacketParser
     public void clearAll() {
         if (mobsHandler != null) mobsHandler.clear();
         if (harvestablesHandler != null) harvestablesHandler.clear();
