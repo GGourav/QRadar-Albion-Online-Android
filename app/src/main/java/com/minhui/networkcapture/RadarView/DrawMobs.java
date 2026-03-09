@@ -2,276 +2,92 @@ package com.minhui.networkcapture.RadarView;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
-
 import androidx.core.content.ContextCompat;
-
 import com.minhui.networkcapture.R;
 import com.minhui.vpn.Handlers.HandlerItem.Mob;
-import com.minhui.vpn.Handlers.HandlerUtils;
 import com.minhui.vpn.Handlers.MainHandler;
 import com.minhui.vpn.PhotonPackageParser.enumerations.MobCodes;
-
 import java.util.ArrayList;
 
-public class DrawMobs
-{
+public class DrawMobs {
     ArrayList<Mob> mobList;
-    Paint paintMobCircle;
-    Paint paintMobHp;
-    Paint paintTreasure;
-    Paint paintLimelight;
-    Paint paintMobCircleGreen;
-    Paint paintMobCircleBlue;
-    Paint paintMobCirclePurple;
-    Paint paintMobCircleLegendary;
+    Paint pCore = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint pPill = new Paint(Paint.ANTI_ALIAS_FLAG);
+    Paint pText = new Paint(Paint.ANTI_ALIAS_FLAG);
     float[] tempPos = new float[2];
     View view;
 
-    public void init(View view)
-    {
+    public void init(View view) {
         this.view = view;
-
-        paintMobCircle= new Paint();
-        paintMobHp = new Paint();
-        paintTreasure= new Paint();
-
-        paintLimelight = new Paint();
-
-        paintMobCircleGreen =new Paint();
-        paintMobCircleBlue = new Paint();
-        paintMobCirclePurple = new Paint();
-        paintMobCircleLegendary = new Paint();
-
-        paintTreasure.setColor(view.getContext().getColor(R.color.colorAccent));
-
-        paintMobHp.setColor(view.getContext().getColor(R.color.colorMobHp));
-        paintMobHp.setStyle(Paint.Style.FILL);
-        paintMobHp.setTextAlign(Paint.Align.CENTER);
-
-        paintLimelight.setColor(view.getContext().getColor(R.color.colorBlueSky));
-
-        paintMobCircle.setColor(view.getContext().getColor(R.color.colorMobCircle));
-        paintMobCircle.setStyle(Paint.Style.FILL);
-        paintMobCircle.setTextAlign(Paint.Align.CENTER);
-
-        paintMobCircleGreen.setColor(view.getContext().getColor(R.color.colorGreen));
-        paintMobCircleBlue.setColor(view.getContext().getColor(R.color.colorBlue));
-        paintMobCirclePurple.setColor(view.getContext().getColor(R.color.colorPurple));
-        paintMobCircleLegendary.setColor(view.getContext().getColor(R.color.colorLegendary));
-
-        tempPos[0] = 0;
-        tempPos[1] = 0;
+        pPill.setColor(Color.parseColor("#CC0D1117"));
+        pText.setColor(Color.WHITE);
+        pText.setTextAlign(Paint.Align.CENTER);
+        pText.setFakeBoldText(true);
     }
 
-    public void setTextSize(int size)
-    {
-        paintMobHp.setTextSize(size);
+    public void setTextSize(int size) {
+        pText.setTextSize(size);
     }
 
-    public void draw(Canvas canvas, float lpX, float lpY, Matrix transformationMatrix , BitmapCache bitmapCache)
-    {
-        mobList =(MainHandler.getInstance().mobsHandler.getMobList());
+    public void draw(Canvas canvas, float lpX, float lpY, Matrix transformationMatrix, BitmapCache bitmapCache) {
+        mobList = (MainHandler.getInstance().mobsHandler.getMobList());
         int desiredWidth = RadarSettings.getInstance().mobIconWidthHeightBar;
         int desiredHeight = RadarSettings.getInstance().mobIconWidthHeightBar;
 
-        int circleRadius = RadarSettings.getInstance().mobRadarSizeBar;
-        int textGap = RadarSettings.getInstance().mobTextGapBar;
-
-        for (Mob m: mobList)
-        {
+        for (Mob m : mobList) {
             MobCodes type = m.getType();
-            boolean continueLoop = false;
-
-            switch (type)
-            {
-                case Boss:
-                {
-                    if(!RadarSettings.getInstance().mobBoss)
-                        continueLoop = true;
-                    break;
-                }
-                case Enemy:
-                {
-                    if(!RadarSettings.getInstance().mobOther)
-                        continueLoop = true;
-                    break;
-                }
-                case MistPortal:
-                {
-                    if (!RadarSettings.getInstance().mobOther)
-                        continueLoop = true;
-                    break;
-                }
-                case Harvestable:
-                {
-                    if (RadarSettings.getInstance().mobHarvestable)
-                    {
-                        if (!RadarSettings.getInstance().mobEnchants[m.getEnchantmentLevel()] || !RadarSettings.getInstance().mobTiers[m.getTier() - 1])
-                        {
-                            continueLoop = true;
-                        }
-                    }
-                    else
-                    {
-                        continueLoop = true;
-                    }
-                    break;
-                }
-                case Skinnable:
-                {
-                    if(RadarSettings.getInstance().mobSkinnable)
-                    {
-                        if(!RadarSettings.getInstance().mobEnchants[m.getEnchantmentLevel()] ||!RadarSettings.getInstance().mobTiers[m.getTier()-1])
-                        {
-                            continueLoop = true;
-                        }
-                    }
-                    else
-                    {
-                        continueLoop = true;
-                    }
-
-                    break;
-                }
-            }
-
-            if(continueLoop)
-            {
-                continue;
-            }
-
-            float mobX =  m.getPosX()*-1+ lpX;
-            float mobY =  m.getPosY()- lpY;
-
-            tempPos[0] = mobX;
-            tempPos[1] = mobY;
-
+            
+            // Basic Position Calculation
+            tempPos[0] = m.getPosX() * -1 + lpX;
+            tempPos[1] = m.getPosY() - lpY;
             transformationMatrix.mapPoints(tempPos);
+            float x = tempPos[0]; float y = tempPos[1];
 
-            if(type==MobCodes.Enemy)
-            {
-                switch (m.getEnchantmentLevel())
-                {
-                    case 1:
-                        canvas.drawCircle(tempPos[0], tempPos[1], (float) (circleRadius*1.5),paintMobCircleGreen);
-                        break;
+            Bitmap bitmap = null;
+            String name = m.getName();
 
-                    case 2:
-                        canvas.drawCircle(tempPos[0], tempPos[1], (float) (circleRadius*1.5),paintMobCircleBlue);
-                        break;
-
-                    case 3:
-                        canvas.drawCircle(tempPos[0], tempPos[1], (float) (circleRadius*1.5),paintMobCirclePurple);
-                        break;
-
-                    case 4:
-                        canvas.drawCircle(tempPos[0], tempPos[1], (float) (circleRadius*1.5),paintMobCircleLegendary);
-                        break;
+            // 1. TRY TO LOAD ICON
+            if (name != null) {
+                bitmap = bitmapCache.getBitmapFromMemCache(name);
+                if (bitmap == null) {
+                    try {
+                        int resId = view.getResources().getIdentifier(name, "drawable", view.getContext().getPackageName());
+                        if (resId != 0) {
+                            Drawable d = ContextCompat.getDrawable(view.getContext(), resId);
+                            if (d instanceof BitmapDrawable) {
+                                bitmap = ((BitmapDrawable) d).getBitmap();
+                                bitmapCache.addBitmapToMemoryCache(name, bitmap);
+                            }
+                        }
+                    } catch (Exception ignored) {}
                 }
-
-                canvas.drawCircle(tempPos[0], tempPos[1], circleRadius,paintMobCircle);
-            }
-            else if(type == MobCodes.Boss)
-            {
-                Bitmap bitmap = bitmapCache.getBitmapFromMemCache(m.getName());
-                String  name = m.getName();
-
-                if(bitmap == null)
-                {
-                    Log.d("Boss nameBitmap", ""+name);
-
-                    int resourceId = view.getResources().getIdentifier(name, "drawable", view.getContext().getPackageName());
-                    Drawable drawable = ContextCompat.getDrawable(view.getContext(), resourceId);
-                    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-                    bitmap = bitmapDrawable.getBitmap();
-
-                    bitmapCache.addBitmapToMemoryCache(name,bitmap);
-                }
-
-                int offsetX = (int) (tempPos[0] - (desiredWidth / 2));
-                int offsetY = (int) (tempPos[1] - (desiredHeight / 2));
-
-                bitmap= Bitmap.createScaledBitmap(bitmap, desiredWidth, desiredHeight, false);
-                canvas.drawBitmap(bitmap , offsetX , offsetY,null);
-            }
-            else if(type == MobCodes.MistPortal)
-            {
-                int Rarity = m.getRarity();
-
-                String name = "mist_" + m.getRarity();
-                Log.d("Mists nameBitmap", ""+name);
-
-                Bitmap bitmap = bitmapCache.getBitmapFromMemCache(name);
-
-                if(bitmap == null)
-                {
-                    int resourceId = view.getResources().getIdentifier(name, "drawable", view.getContext().getPackageName());
-                    Drawable drawable = ContextCompat.getDrawable(view.getContext(), resourceId);
-                    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-                    bitmap = bitmapDrawable.getBitmap();
-                    bitmapCache.addBitmapToMemoryCache(name,bitmap);
-                }
-
-                int desiredWidthNew = (int)(desiredWidth * 0.70);
-                int desiredHeightNew = (int)(desiredHeight * 0.70);
-
-                int offsetX = (int) (tempPos[0] - (desiredWidthNew / 2));
-                int offsetY = (int) (tempPos[1] - (desiredHeightNew / 2));
-
-                bitmap= Bitmap.createScaledBitmap(bitmap, desiredWidthNew, desiredHeightNew, false);
-                canvas.drawBitmap(bitmap , offsetX , offsetY,null);
-            }
-            else if(type == MobCodes.Events)
-            {
-                canvas.drawCircle(tempPos[0], tempPos[1], circleRadius, paintMobCircleGreen);
-            }
-            else if(type == MobCodes.Guard)
-            {
-                canvas.drawCircle(tempPos[0], tempPos[1], circleRadius, paintTreasure);
-            }
-            else
-            {
-                String  name = m.getName() + "_" + m.getTier() + "_" + m.getEnchantmentLevel();
-                Log.d("Skinnable-Harvestable  nameBitmap", ""+name);
-
-                Bitmap bitmap = bitmapCache.getBitmapFromMemCache(name);
-
-                if(bitmap == null)
-                {
-                    int resourceId = view.getResources().getIdentifier(name, "drawable", view.getContext().getPackageName());
-                    Drawable drawable = ContextCompat.getDrawable(view.getContext(), resourceId);
-                    BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-                    bitmap = bitmapDrawable.getBitmap();
-                    bitmapCache.addBitmapToMemoryCache(name,bitmap);
-                }
-
-                int offsetX = (int) (tempPos[0] - (desiredWidth / 2));
-                int offsetY = (int) (tempPos[1] - (desiredHeight / 2));
-
-                bitmap= Bitmap.createScaledBitmap(bitmap, desiredWidth, desiredHeight, false);
-                canvas.drawBitmap(bitmap , offsetX , offsetY,null);
             }
 
-            if(RadarSettings.getInstance().mobHp)
-            {
-                String HP = m.getHealth() + "";
-
-                if (!m.info || type == MobCodes.Harvestable || type == MobCodes.Skinnable)
-                {
-                    HP += " - " + m.getTypeId();
-                }
-                else  if(type == MobCodes.MistPortal)
-                {
-                    HP = m.getTypeId() + "";
-                }
-
-                canvas.drawText(HP,tempPos[0],tempPos[1]+textGap,paintMobHp);
+            // 2. DRAW LOGIC
+            if (bitmap != null) {
+                // ICON EXISTS: Draw original style
+                bitmap = Bitmap.createScaledBitmap(bitmap, desiredWidth, desiredHeight, false);
+                canvas.drawBitmap(bitmap, x - (desiredWidth / 2), y - (desiredHeight / 2), null);
+            } else {
+                // ICON MISSING (New Mobs): Draw Green Dot + Text Fallback
+                pCore.setColor(Color.parseColor("#3fb950")); // Default Green
+                if (type == MobCodes.Boss) pCore.setColor(Color.parseColor("#ff6b35")); // Orange for Boss
+                
+                canvas.drawCircle(x, y, 15f, pCore);
+                
+                String label = (name != null) ? name : "Unknown Mob";
+                pText.setTextSize(20f);
+                float tw = pText.measureText(label);
+                canvas.drawRoundRect(new RectF(x - tw/2 - 6, y + 18, x + tw/2 + 6, y + 44), 8f, 8f, pPill);
+                canvas.drawText(label, x, y + 36, pText);
             }
         }
     }
