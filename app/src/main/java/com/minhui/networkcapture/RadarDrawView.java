@@ -23,8 +23,6 @@ import com.minhui.vpn.Handlers.MainHandler;
 public class RadarDrawView extends Service {
     private WindowManager windowManager;
     private View overlayView;
-    private View overlaySettingsView;
-    private View radarFloatingSettingsView;
     private static final String CHANNEL_ID = "radar_ui_channel_01";
 
     @Override
@@ -43,10 +41,13 @@ public class RadarDrawView extends Service {
         int pendingFlags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0;
         PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(this, VPNCaptureActivity.class), pendingFlags);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Radar UI Active").setSmallIcon(R.drawable.logo).setContentIntent(pi).build();
+                .setContentTitle("QRadar UI Active").setSmallIcon(android.R.drawable.ic_menu_compass).setContentIntent(pi).build();
 
-        if (Build.VERSION.SDK_INT >= 34) startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-        else startForeground(2, notification);
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        } else {
+            startForeground(2, notification);
+        }
     }
 
     private void showOverlayWindow() {
