@@ -3,29 +3,19 @@ package com.minhui.networkcapture.RadarView;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.minhui.networkcapture.R;
-import com.minhui.vpn.Handlers.HandlerItem.Player;
 import com.minhui.vpn.Handlers.MainHandler;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-public class RadarView extends View
-{
+public class RadarView extends View {
     Paint paintCenterObject;
     Matrix transformationMatrix;
     public DrawPlayers drawPlayers = new DrawPlayers();
@@ -37,107 +27,83 @@ public class RadarView extends View
     Paint borderPaint;
     BitmapCache bitmapCache = new BitmapCache();
 
-    @Subscribe public void onMessage(String event)
-    {
-        //  Log.d("draw","call");
-       invalidate();
+    @Subscribe
+    public void onMessage(String event) {
+        invalidate();
     }
 
-    public void init()
-    {
-        EventBus.getDefault().register(this);
-        paintCenterObject =new Paint();
+    public void init() {
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
+        
+        paintCenterObject = new Paint(Paint.ANTI_ALIAS_FLAG);
         drawPlayers.init(this);
         drawMobs.init(this);
         harvestingDraw.init(this);
         fishingZoneDraw.init(this);
         drawChests.init(this);
 
-        borderPaint = new Paint();
+        borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(RadarSettings.getInstance().radarCircleSquareBorderBar);
-        borderPaint.setColor(getContext().getColor(R.color.colorBlue));
+        borderPaint.setStrokeWidth(5f);
+        borderPaint.setColor(Color.BLUE);
 
-        paintCenterObject.setColor(getContext().getColor(R.color.colorPrimary));
+        // FIX: Set center dot to RED for high visibility
+        paintCenterObject.setColor(Color.RED);
         paintCenterObject.setStyle(Paint.Style.FILL);
 
-        this.post(() -> initMatrix());
+        this.post(this::initMatrix);
     }
-    public void setBorderSize(int size)
-    {
+
+    public void setBorderSize(int size) {
         borderPaint.setStrokeWidth(size);
     }
 
-    public  void initMatrix()
-    {
-        transformationMatrix  = new Matrix();
-
+    public void initMatrix() {
+        transformationMatrix = new Matrix();
         float radarCenterX = getWidth() / 2f;
         float radarCenterY = getHeight() / 2f;
 
         transformationMatrix.postTranslate(radarCenterX, radarCenterY);
-        transformationMatrix.postRotate(225,radarCenterX,radarCenterY);
-        transformationMatrix.postScale(RadarSettings.getInstance().radarScaleBar,RadarSettings.getInstance().radarScaleBar,radarCenterX,radarCenterY);
+        // Rotate 225 degrees to align with Albion's isometric map view
+        transformationMatrix.postRotate(225, radarCenterX, radarCenterY);
+        
+        float scale = RadarSettings.getInstance().radarScaleBar;
+        if (scale <= 0) scale = 2.3f; // Default scale safeguard
+        transformationMatrix.postScale(scale, scale, radarCenterX, radarCenterY);
     }
 
-    public RadarView(Context context)
-    {
-        super(context);
-        init();
-    }
-
-    public RadarView(Context context, AttributeSet attrs)
-    {
-        super(context, attrs);
-        init();
-    }
-
-    public RadarView(Context context, AttributeSet attrs, int defStyleAttr)
-    {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    ArrayList<Player> playerList;
+    public RadarView(Context context) { super(context); init(); }
+    public RadarView(Context context, AttributeSet attrs) { super(context, attrs); init(); }
+    public RadarView(Context context, AttributeSet attrs, int defStyleAttr) { super(context, attrs, defStyleAttr); init(); }
 
     @SuppressLint("DrawAllocation")
     @Override
-    protected void onDraw(Canvas canvas)
-    {
-      //  super.onDraw(canvas);
-
-        if(transformationMatrix==null)
-        {
+    protected void onDraw(Canvas canvas) {
+        if (transformationMatrix == null) {
             return;
         }
 
+        // Get local player position from the Network Handlers
         float lpX = MainHandler.getInstance().playersHandler.localPlayerPosX();
         float lpY = MainHandler.getInstance().playersHandler.localPlayerPosY();
 
-        if(!RadarSettings.getInstance().radarShowTopMost)
-        {
-            canvas.drawCircle(getWidth()/2,getHeight()/2, RadarSettings.getInstance().radarMiddleCircleBar, paintCenterObject );
-        }
+        // 1. Draw your character (The Center Red Dot)
+        canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, 15f, paintCenterObject);
 
-        if(RadarSettings.getInstance().radarShowSquare)
-        {
-            canvas.drawRect(0, 0, getWidth(), getHeight(), borderPaint);
-        }
+        // 2. Draw Resources and Items
+        harvestingDraw.draw(canvas, lpX, lpY, transformationMatrix, bitmapCache);
+        fishingZoneDraw.draw(canvas, lpX, lpY, transformationMatrix, bitmapCache);
+        
+        // 3. Draw Mobs and Chests
+        drawMobs.draw(canvas, lpX, lpY, transformationMatrix, bitmapCache);
+        drawChests.draw(canvas, lpX, lpY, transformationMatrix, bitmapCache);
+        
+        // 4. Draw Players
+        drawPlayers.draw(canvas, lpX, lpY, transformationMatrix);
 
-        if(RadarSettings.getInstance().radarShowCircle)
-        {
-            canvas.drawCircle(getWidth()/2, getHeight()/2, getWidth()/2 -  RadarSettings.getInstance().radarMiddleCircleBar  , borderPaint);
-        }
-
-        harvestingDraw.draw(canvas,lpX,lpY,transformationMatrix, bitmapCache);
-        fishingZoneDraw.draw(canvas,lpX,lpY,transformationMatrix, bitmapCache);
-        drawMobs.draw(canvas,lpX,lpY,transformationMatrix, bitmapCache);
-        drawChests.draw(canvas,lpX,lpY,transformationMatrix, bitmapCache);
-        drawPlayers.draw(canvas,lpX,lpY,transformationMatrix);
-
-        if(RadarSettings.getInstance().radarShowTopMost)
-        {
-            canvas.drawCircle(getWidth()/2,getHeight()/2, RadarSettings.getInstance().radarMiddleCircleBar, paintCenterObject );
-        }
+        // FIX: Force a 30FPS refresh limit to prevent screen freezing/lag on iQOO
+        postInvalidateDelayed(33);
     }
 }
