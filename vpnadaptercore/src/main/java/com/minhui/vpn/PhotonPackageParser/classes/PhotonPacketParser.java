@@ -139,7 +139,12 @@ public class PhotonPacketParser
             {
                 Code = Utils.getNumber(Parameters.get(252));
 
-                EventCodes eventCode = EventCodes.values()[Code];
+                EventCodes eventCode = EventCodes.fromCode(Code);
+
+                if (eventCode == null) {
+                    // Unknown event code, skip processing
+                    return;
+                }
 
                 switch (eventCode)
                 {
@@ -287,7 +292,12 @@ public class PhotonPacketParser
 
         try
         {
-            OperationCodes operationCode = OperationCodes.values()[Code];
+            OperationCodes operationCode = OperationCodes.fromCode(Code);
+
+            if (operationCode == null) {
+                // Unknown operation code, skip processing
+                return;
+            }
 
             switch (operationCode)
             {
@@ -325,7 +335,12 @@ public class PhotonPacketParser
 
         try
         {
-            OperationCodes operationCode = OperationCodes.values()[Code];
+            OperationCodes operationCode = OperationCodes.fromCode(Code);
+
+            if (operationCode == null) {
+                // Unknown operation code, skip processing
+                return;
+            }
 
             switch (operationCode)
             {
