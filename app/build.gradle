@@ -1,49 +1,41 @@
 apply plugin: 'com.android.application'
 
-android
-{
-    signingConfigs
-    {
-        release
-        {
-            storeFile file('C:\\Users\\jdeleon\\StudioProjects\\QRadar-Albion-Online-Android\\key\\key.jks')
-            storePassword 'Usuario@2024#'
-            keyPassword 'Usuario@2024#'
-            keyAlias '33'
-        }
-    }
+android {
     compileSdkVersion 33
-    defaultConfig
-    {
+    
+    defaultConfig {
         applicationId 'com.minhui.networkcapture.albion'
         minSdkVersion 24
         targetSdkVersion 33
         versionCode 15
         versionName '1.1.7.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        Properties properties = new Properties();
-        properties.load(project.rootProject.file("local.properties").newDataInputStream())
-        buildConfigField "String", "API_KEY" ,"\"${properties.getProperty("API_KEY")}\""
-        signingConfig signingConfigs.release
     }
-    buildTypes
-    {
-        release
-        {
+    
+    buildTypes {
+        release {
             minifyEnabled true
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            debuggable true
+            minifyEnabled false
+        }
     }
-    compileOptions
-    {
+    
+    compileOptions {
         targetCompatibility 11
         sourceCompatibility 11
     }
+    
+    lintOptions {
+        abortOnError false
+        checkReleaseBuilds false
+    }
 }
 
-dependencies
-{
+dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
