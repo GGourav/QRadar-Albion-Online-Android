@@ -1,5 +1,10 @@
 package com.minhui.vpn.PhotonPackageParser.enumerations;
 
+/**
+ * EventCodes - Photon event codes for Albion Online
+ * IMPORTANT: These codes MUST match the actual game protocol codes.
+ * Based on OpenRadar's EventCodes.js
+ */
 public enum EventCodes
 {
     Unused(0),
@@ -585,10 +590,18 @@ public enum EventCodes
         this.code = code;
     }
 
+    /**
+     * Get the actual game protocol code for this event
+     */
     public int getCode() {
         return code;
     }
 
+    /**
+     * Look up an EventCodes by the actual game protocol code
+     * @param code The game protocol event code
+     * @return The matching EventCodes enum, or null if not found
+     */
     public static EventCodes fromCode(int code) {
         for (EventCodes event : values()) {
             if (event.code == code) {
