@@ -10,6 +10,9 @@ import androidx.annotation.NonNull;
 import java.io.File;
 import java.util.List;
 
+import com.minhui.vpn.Data.MobsDatabase;
+import com.minhui.vpn.Data.HarvestablesDatabase;
+
 
 /**
  * @author minhui.zhu
@@ -20,12 +23,21 @@ import java.util.List;
 public class MyApplication extends Application
 {
     public static final String BUGLY_ID="6c905fa4a7";
-    private static  Context context;
+    private static Context context;
+    
     @Override
     public void onCreate()
     {
         super.onCreate();
+        
+        // Initialize context
+        context = getApplicationContext();
+        
+        // Load mob and harvestable databases
+        MobsDatabase.getInstance().load(context);
+        HarvestablesDatabase.getInstance().load(context);
     }
+    
     public static Context getContext(){
         return context;
     }
